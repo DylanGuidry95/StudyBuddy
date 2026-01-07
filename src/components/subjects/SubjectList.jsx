@@ -9,6 +9,8 @@ function SubjectList({ subjects, setSubjects, onSelect }) {
     sortedGroups,
     openGroups,
     toggleGroup,
+    searchTerm,
+    setSearchTerm
   } = useSubjects(subjects, setSubjects);
 
   const [name, setName] = useState("");
@@ -40,10 +42,7 @@ function SubjectList({ subjects, setSubjects, onSelect }) {
         placeholder="Instructor"
       />
 
-      <select
-        value={semester}
-        onChange={(e) => setSemester(e.target.value)}
-      >
+      <select value={semester} onChange={(e) => setSemester(e.target.value)}>
         <option value="">Semester</option>
         <option value="Spring">Spring</option>
         <option value="Summer">Summer</option>
@@ -62,7 +61,12 @@ function SubjectList({ subjects, setSubjects, onSelect }) {
       <hr />
 
       <h3>Your Subjects</h3>
-
+      <input 
+      type = "text"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      placeholder="Search subjects or instructors..."
+      style={{width: "100%", marginBottom: "12px"}}/>
       {sortedGroups.map((group) => {
         const isOpen = openGroups[group] !== false;
 
@@ -70,8 +74,8 @@ function SubjectList({ subjects, setSubjects, onSelect }) {
           <div key={group}>
             <button onClick={() => toggleGroup(group)}>
               {isOpen ? "▼" : "▶"}
-            </button> {group}
-
+            </button>{" "}
+            {group}
             {isOpen &&
               groupedSubjects[group].map((subject) => (
                 <div key={subject.id}>
@@ -85,9 +89,9 @@ function SubjectList({ subjects, setSubjects, onSelect }) {
                   <button
                     onClick={() => deleteSubject(subject.id)}
                     style={{ color: "red" }}
->
+                  >
                     X
-                  </button>                  
+                  </button>
                 </div>
               ))}
           </div>

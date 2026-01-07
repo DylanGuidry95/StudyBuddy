@@ -25,7 +25,7 @@ export function useSubjects(subjects, setSubjects) {
     const saved = localStorage.getItem("openSubjectGroups");
     return saved ? JSON.parse(saved) : {};
   });
-
+  const [searchTerm, setSearchTerm] = useState("");
   const currentSemesterKey = getCurrentSemesterKey();
 
   /* ---------- CRUD ---------- */
@@ -56,15 +56,38 @@ export function useSubjects(subjects, setSubjects) {
     }
   };
 
+  const matchSearch = (subject) => {
+    if (!searchTerm.trim()) return true;
+
+    const searchLowered = searchTerm.toLowerCase();
+
+    return (
+      subject.name.toLowerCase().includes(searchLowered) ||
+      subject.instructor.toLowerCase().includes(searchLowered)
+    );
+  };
+
   /* ---------- GROUPING ---------- */
 
   const groupedSubjects = subjects.reduce((groups, subject) => {
+    if (!matchSearch(subject)) return groups;
     const key = `${subject.semester} ${subject.year}`;
     if (!groups[key]) groups[key] = [];
     groups[key].push(subject);
     return groups;
   }, {});
 
+  useEffect(() => {
+    if (!searchTerm) return;
+    setOpenGroups((prev) => {
+      const updated = { ...prev };
+      Object.keys(groupedSubjects).forEach((group) => {
+        updated[group] = true;
+      });
+
+      return updated;
+    }, {});
+  }, [searchTerm]);
   const sortedGroups = Object.keys(groupedSubjects).sort((a, b) => {
     if (a === currentSemesterKey) return -1;
     if (b === currentSemesterKey) return 1;
@@ -86,10 +109,7 @@ export function useSubjects(subjects, setSubjects) {
   };
 
   useEffect(() => {
-    localStorage.setItem(
-      "openSubjectGroups",
-      JSON.stringify(openGroups)
-    );
+    localStorage.setItem("openSubjectGroups", JSON.stringify(openGroups));
   }, [openGroups]);
 
   return {
@@ -102,5 +122,7 @@ export function useSubjects(subjects, setSubjects) {
     openGroups,
     toggleGroup,
     currentSemesterKey,
+    searchTerm,
+    setSearchTerm,
   };
 }
