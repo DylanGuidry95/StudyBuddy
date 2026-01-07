@@ -1,25 +1,45 @@
-import logo from './logo.svg';
 import './App.css';
+import { useEffect, useState } from "react";
+import SubjectList from "./components/subjects/SubjectList";
+import SubjectDetail from "./components/subjects/SubjectDetail";
 
 function App() {
+  const [subjects, setSubjects] = useState(() => {
+    const saved = localStorage.getItem("subjects");
+    return saved ? JSON.parse(saved) : [];
+  });
+  useEffect(() => {
+  localStorage.setItem("subjects", JSON.stringify(subjects));
+  }, [subjects]);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container">
+      <h1>Study Companion</h1>
+
+      {!selectedSubject ? (        
+        <SubjectList
+          subjects={subjects}
+          setSubjects={setSubjects}
+          onSelect={setSelectedSubject}
+        />
+      ) : (
+        <SubjectDetail
+          subject={selectedSubject}
+          onBack={() => setSelectedSubject(null)}
+          updateSubject={(updated) => {
+            setSubjects(
+              subjects.map((s) =>
+                s.id === updated.id ? updated : s
+              )
+            );
+            setSelectedSubject(updated);
+          }}
+        />
+      )}
     </div>
   );
 }
 
 export default App;
+
