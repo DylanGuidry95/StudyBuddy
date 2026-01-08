@@ -1,23 +1,11 @@
 import { useState, useEffect } from "react";
+import { getCurrentSemesterKey } from "../utils/semester";
 
 const SEMESTER_ORDER = {
   Spring: 1,
   Summer: 2,
   Fall: 3,
 };
-
-function getCurrentSemesterKey() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-
-  let semester;
-  if (month <= 4) semester = "Spring";
-  else if (month <= 7) semester = "Summer";
-  else semester = "Fall";
-
-  return `${semester} ${year}`;
-}
 
 export function useSubjects(subjects, setSubjects) {
   const [activeSubjectId, setActiveSubjectId] = useState(null);
@@ -104,9 +92,21 @@ export function useSubjects(subjects, setSubjects) {
   const toggleGroup = (group) => {
     setOpenGroups((prev) => ({
       ...prev,
-      [group]: !prev[group],
+      [group]: prev[group] === undefined ? false : !prev[group],
     }));
   };
+
+  useEffect(() => {
+    setOpenGroups((prev) => {
+      const updated = { ...prev };
+      sortedGroups.forEach((group) => {
+        if (updated[group] === undefined) {
+          updated[group] = true;
+        }
+      });
+      return updated;
+    });
+  }, [sortedGroups]);
 
   useEffect(() => {
     localStorage.setItem("openSubjectGroups", JSON.stringify(openGroups));
