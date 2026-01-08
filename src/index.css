@@ -45,3 +45,20 @@ textarea {
     width: 100%;
   }
 }
+
+.home-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.main {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+.calendar-panel {
+  width: 300px;
+  border-left: 1px solid #ddd;
+  padding: 16px;
+}
