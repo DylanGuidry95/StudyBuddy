@@ -5,6 +5,7 @@ import SemesterSelect from "../form/SemesterSelect";
 import YearInput from "../form/YearInput";
 import HomeLayout from "../home/HomeSidebar";
 import CalendarPanel from "../home/CalendarPanel";
+import  AuthTests  from "../../tests/authTests";
 
 function SubjectList({ subjects, setSubjects, onSelect }) {
   const {} = useSubjects(subjects, setSubjects);
@@ -13,7 +14,8 @@ function SubjectList({ subjects, setSubjects, onSelect }) {
     <div className="home-layout">
       <HomeLayout subjects={subjects} setSubjects={setSubjects} onSelect={onSelect} />
       <CalendarPanel/>
-    </div>
+      <AuthTests></AuthTests>
+    </div>    
   );
 }
 
