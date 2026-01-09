@@ -2,10 +2,12 @@ import { useState } from "react";
 import SubjectSidebar from "./SubjectSidebar";
 import GuideEditor from "../guides/GuideEditor";
 import { useGuidesDb } from "../../hooks/useGuidesDb";
+import { useNotesDb } from "../../hooks/useNoteDb";
 
 function SubjectDetail({ subject, onBack }) {
   const [activeGuideId, setActiveGuideId] = useState(null);
   const guidesDb = useGuidesDb(subject.id);
+  const notesDb = useNotesDb(activeGuideId);
 
   const activeGuide = guidesDb.guides.find(
     (g) => g.id === activeGuideId
@@ -31,6 +33,7 @@ function SubjectDetail({ subject, onBack }) {
         ) : activeGuide ? (
           <GuideEditor 
           guide={activeGuide}
+          notesDb={notesDb}
           onUpdateTitle={updateGuideTitle} />
         ) : (
           <p>Select or create a study guide</p>

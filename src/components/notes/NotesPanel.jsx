@@ -1,23 +1,33 @@
-import { useNotes } from "../../hooks/useNotes";
 import NoteItem from "./NoteItem";
+import { useNotesUi } from "../../hooks/useNotesUi";
 
-function NotesPanel({ notes, updateGuide }) {
-  const noteApi = useNotes(notes, updateGuide);
+function NotesPanel({ notesDb }) {
+  // ✅ HOOK CALLED AT TOP LEVEL
+  const ui = useNotesUi(notesDb);
+
+  if (notesDb.loading) {
+    return <p>Loading notes…</p>;
+  }
 
   return (
-    <>
+    <div>
       <h3>Notes</h3>
-      <button onClick={noteApi.add}>Add Note</button>
 
-      {notes.map((note) => (
+      {/* Add button must always render */}
+      <button onClick={notesDb.addNote}>➕ Add Note</button>
+
+      {notesDb.notes.length === 0 && (
+        <p style={{ color: "#888" }}>No notes yet</p>
+      )}
+
+      {notesDb.notes.map((note) => (
         <NoteItem
           key={note.id}
           note={note}
-          notes={notes}
-          api={noteApi}
+          api={ui} 
         />
       ))}
-    </>
+    </div>
   );
 }
 
