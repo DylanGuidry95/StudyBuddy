@@ -1,5 +1,28 @@
-function NoteItem({ note, notes, api }) {
+import { useEffect, useRef, useState } from "react";
+
+function NoteItem({ note, api }) {
   const isCollapsed = api.collapsed[note.id];
+
+  const [localContent, setLocalContent] = useState(note.content);
+  const debounceRef = useRef(null);
+
+  // Keep local state in sync if note changes externally
+  useEffect(() => {
+    setLocalContent(note.content);
+  }, [note.content]);
+
+  const handleChange = (value) => {
+    setLocalContent(value);
+
+    // Clear previous debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    debounceRef.current = setTimeout(() => {
+      api.updateContent(note.id, value);
+    }, 5000); // ⏱ 1 second (adjust as needed)
+  };
 
   return (
     <div>
@@ -7,31 +30,12 @@ function NoteItem({ note, notes, api }) {
         {isCollapsed ? "▶" : "▼"}
       </button>
 
-      {api.renamingId === note.id ? (
-        <>
-          <input
-            value={api.renameValue}
-            onChange={(e) => api.setRenameValue(e.target.value)}
-          />
-          <button onClick={api.saveRename}>Save</button>
-        </>
-      ) : (
-        <>
-          <strong>{note.title}</strong>
-          <button onClick={() => api.startRename(note)}>✏️</button>
-        </>
-      )}
-
       {!isCollapsed && (
         <textarea
-          value={note.content}
-          onChange={(e) =>
-            api.updateContent(note.id, e.target.value)
-          }
+          value={localContent}
+          onChange={(e) => handleChange(e.target.value)}
         />
       )}
-
-      <button onClick={() => api.remove(note.id)}>🗑️</button>
     </div>
   );
 }
