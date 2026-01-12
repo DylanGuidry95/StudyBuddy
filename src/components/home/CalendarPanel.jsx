@@ -1,34 +1,39 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useState } from "react";
+import { useCalendarDb } from "../../hooks/useCalendarDb";
 
 function CalendarPanel() {
-  const [events, setEvents] = useState([]);
+  const calendarDb = useCalendarDb();
 
   const handleDateClick = (info) => {
     const title = prompt("Event title?");
     if (!title) return;
 
-    setEvents((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        title,
-        start: info.dateStr,
-      },
-    ]);
+    calendarDb.addEvent({
+      title,
+      start_date: info.dateStr, // YYYY-MM-DD
+    });
   };
 
+  if (calendarDb.loading) {
+    return <p>Loading calendar…</p>;
+  }
+
   return (
-    <div className="main">
+    <div className="calendar-panel">
       <h2>Study Calendar</h2>
 
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         dateClick={handleDateClick}
-        events={events}
+        events={calendarDb.events.map((e) => ({
+          id: e.id,
+          title: e.title,
+          start: e.start_date,
+          end: e.end_date || undefined,
+        }))}
         height="auto"
       />
     </div>

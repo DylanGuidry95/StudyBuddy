@@ -13,9 +13,7 @@ function GuideEditor({ guide, onUpdateTitle, notesDb, attachmentsDb }) {
       <GuideTitle
         guide={guide}                
         updateGuide={onUpdateTitle}
-      />      
-      {/* Notes & attachments come back after DB migration */}      
-      <CalendarPanel />
+      />
       <NotesPanel notesDb={notesDb} />
       <AttachmentPanel attachmentsDb={attachmentsDb} />
     </>
