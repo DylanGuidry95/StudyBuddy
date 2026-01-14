@@ -3,62 +3,79 @@ import { useEffect, useRef, useState } from "react";
 function NoteItem({ note, ui }) {
   const isCollapsed = ui.collapsed[note.id] !== false;
 
-  const [localContent, setLocalContent] = useState(note.content);
-  const debounceRef = useRef(null);
+  const [draft, setDraft] = useState(note.content);
+  const isDirtyRef = useRef(false);
+  const timeoutRef = useRef(null);
 
-  // Keep local state in sync if note changes externally
+  const [isSaving, setIsSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Sync ONLY when switching notes
   useEffect(() => {
-    setLocalContent(note.content);
-  }, [note.content]);
+    isDirtyRef.current = false;
+    setDraft(note.content);
+  }, [note.id]);
 
-  const handleChange = (value) => {
-    setLocalContent(value);
+  // Cleanup
+  useEffect(() => {
+    return () => clearTimeout(timeoutRef.current);
+  }, []);
 
-    // Clear previous debounce
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    
-    debounceRef.current = setTimeout(() => {
-      ui.updateContent(note.id, value);
-    }, 5000); // ⏱ 1 second (adjust as needed)
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setDraft(value);
+    isDirtyRef.current = true;
+
+    clearTimeout(timeoutRef.current);
+
+    setIsSaving(true);
+    setJustSaved(false);
+
+    timeoutRef.current = setTimeout(async () => {
+      await ui.updateContent(note.id, value);
+
+      setIsSaving(false);
+      setJustSaved(true);
+      isDirtyRef.current = false;
+
+      // hide "Saved" after a moment
+      setTimeout(() => setJustSaved(false), 1500);
+    }, 700);
   };
 
   return (
-   <div style={{ border: "1px solid #ccc", padding: "6px", marginBottom: "8px" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+    <div
+      style={{ border: "1px solid #ccc", padding: "6px", marginBottom: "8px" }}
+    >
+      <div style={{ display: "flex", gap: "6px" }}>
         <button onClick={() => ui.toggleCollapse(note.id)}>
           {isCollapsed ? "▶" : "▼"}
         </button>
 
-        {ui.renamingId === note.id ? (
-          <>
-            <input
-              value={ui.renameValue}
-              onChange={(e) => ui.setRenameValue(e.target.value)}
-            />
-            <button onClick={() => ui.saveRename(note.id)}>Save</button>
-          </>
-        ) : (
-          <>
-            <strong>{note.title || "Untitled Note"}</strong>
-            <button onClick={() => ui.startRename(note)}>✏️</button>
-          </>
-        )}
+        <strong>{note.title || "Untitled Note"}</strong>
 
-        <button onClick={() => ui.remove(note.id)} style={{ marginLeft: "auto" }}>
+        <button
+          onClick={() => ui.remove(note.id)}
+          style={{ marginLeft: "auto" }}
+        >
           🗑️
         </button>
       </div>
 
-      {/* Content */}
       {!isCollapsed && (
-        <textarea
-          value={note.content}
-          onChange={(e) => ui.updateContent(note.id, e.target.value)}
-          style={{ width: "100%", marginTop: "6px" }}
-        />
+        <>
+          <div
+            style={{ fontSize: "0.8em", marginTop: "4px", color: "#6b7280" }}
+          >
+            {isSaving && "Saving…"}
+            {!isSaving && justSaved && "Saved"}
+          </div>
+          <textarea
+            value={draft}
+            onChange={handleChange}
+            style={{ width: "100%", marginTop: "6px" }}
+          />
+        </>
       )}
     </div>
   );
