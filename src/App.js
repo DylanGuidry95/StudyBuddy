@@ -2,6 +2,7 @@ import './App.css';
 import { useEffect, useState } from "react";
 import SubjectDetail from "./components/subjects/SubjectDetail";
 import HomeLayout from './components/home/HomeLayout';
+import { AttachmentPreviewProvider } from './components/attachments/AttachmentPreviewContext';
 
 
 function App() {
@@ -17,7 +18,9 @@ function App() {
   return (
     <div className="container">
       <h1>Study Companion</h1>
-      <HomeLayout/>          
+      <AttachmentPreviewProvider>
+        <HomeLayout/>          
+      </AttachmentPreviewProvider>
     </div>
   );
 }

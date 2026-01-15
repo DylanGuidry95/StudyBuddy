@@ -1,178 +1,182 @@
 import { useEffect, useRef, useState } from "react";
-import { getCaretCoordinates } from "../../utils/getCaretCoordinates";
+import NotePreview from "./NotePreview";
 
 function NoteItem({ note, ui, attachments }) {
   const isCollapsed = ui.collapsed[note.id] !== false;
-
-  const [draft, setDraft] = useState(note.content);
-  const isDirtyRef = useRef(false);
-  const timeoutRef = useRef(null);
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [justSaved, setJustSaved] = useState(false);
-
-  const [pickerPos, setPickerPos] = useState(null);
-  const [trigger, setTrigger] = useState(null);
   const textareaRef = useRef(null);
-
-  // Sync ONLY when switching notes
+  const [draft, setDraft] = useState(note.content || "");
+  const [caretPos, setCaretPos] = useState(0);
+  const [showPicker, setShowPicker] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [localContent, setLocalContent] = useState(note.content);
+  const debounceRef = useRef(null);
+  // Sync external updates
   useEffect(() => {
-    isDirtyRef.current = false;
-    setDraft(note.content);
-  }, [note.id]);
+    setDraft(note.content || "");
+  }, [note.content]);
 
-  // Cleanup
+  // Debounced save
   useEffect(() => {
-    return () => clearTimeout(timeoutRef.current);
-  }, []);
+    const t = setTimeout(() => {
+      ui.updateContent(note.id, draft);
+    }, 1200);
+
+    return () => clearTimeout(t);
+  }, [draft, note.id, ui]);
 
   const handleChange = (e) => {
-    const textarea = e.target;
-    const value = textarea.value;
-    const cursor = textarea.selectionStart;
+    setDraft(e.target.value);
+    setCaretPos(e.target.selectionStart);
+    setLocalContent(note.content);
 
-    setDraft(value);
-    isDirtyRef.current = true;
-
-    // If trigger exists, update or cancel it
-    if (trigger) {
-      const typed = value.slice(trigger.start, cursor);
-
-      if (!typed.startsWith("[[") || typed.length > 30) {
-        setTrigger(null);
-        setPickerPos(null);
-      } else {
-        const coords = getCaretCoordinates(textarea, cursor);
-
-        setTrigger({
-          ...trigger,
-          query: typed.slice(2),
-        });
-
-        setPickerPos({
-          top: coords.top + 20,
-          left: coords.left,
-        });
-      }
-    } else {
-      // Detect new trigger
-      const coords = getCaretCoordinates(textarea, cursor);
-
-      setTrigger({
-        start: cursor - 2,
-        query: "",
-      });
-
-      setPickerPos({
-        top: coords.top + 20,
-        left: coords.left,
-      });
+    // Clear previous debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
 
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      ui.updateContent(note.id, value);
-    }, 700);
-  };
-
-  const filteredAttachments = trigger?.query
-    ? attachments.filter((a) =>
-        a.name.toLowerCase().includes(trigger.query.toLowerCase())
-      )
-    : attachments;
-
-  const clearPicker = () => {
-    setTrigger(null);
-    setPickerPos(null);
+    debounceRef.current = setTimeout(() => {
+      ui.updateContent(note.id, e.target.value);
+    }, 5000);
   };
 
   const insertAttachment = (name) => {
-    const textarea = textareaRef.current;
-    if (!textarea || !trigger) return;
+    const before = draft.slice(0, caretPos);
+    const after = draft.slice(caretPos);
 
-    const before = draft.slice(0, trigger.start);
-    const after = draft.slice(textarea.selectionStart);
+    const nextValue = `${before}[[${name}]]${after}`;
+    const nextCaret = before.length + name.length + 4;
 
-    const next = before + `[[${name}]]` + after;
+    setDraft(nextValue);
+    setShowPicker(false);
 
-    setDraft(next);
-    setTrigger(null);
-    clearPicker();
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const pos = before.length + name.length + 4;
-      textarea.setSelectionRange(pos, pos);
-    });
+    // Restore caret safely
+    setTimeout(() => {
+      if (!textareaRef.current) return;
+      textareaRef.current.focus();
+      textareaRef.current.selectionStart = nextCaret;
+      textareaRef.current.selectionEnd = nextCaret;
+    }, 0);
+  };
+
+  const collapseWhileEditing = () => {
+    ui.toggleCollapse(note.id);
+    setShowPicker(false);
+    setIsEditing(false);
   };
 
   return (
     <div
-      style={{ border: "1px solid #ccc", padding: "6px", marginBottom: "8px" }}
+      style={{
+        border: "1px solid #ccc",
+        padding: "8px",
+        marginBottom: "10px",
+      }}
     >
-      <div style={{ display: "flex", gap: "6px" }}>
-        <button onClick={() => ui.toggleCollapse(note.id)}>
+      {!isEditingName && (
+        <div>
+          <strong>{note.title || "Untitled Note"}</strong>
+          <button
+            onClick={() => {
+              setIsEditingName(true);
+              ui.startRename(note);
+            }}
+          >
+            Edit Name
+          </button>
+          <button
+            onClick={() => ui.remove(note.id)}
+            style={{ marginLeft: "6px", color: "red" }}
+          >
+            🗑️
+          </button>
+        </div>
+      )}
+      {isEditingName && (
+        <div>
+          <input
+            placeholder={note.title}
+            onChange={(e) => ui.setRenameValue(e.target.value)}
+          ></input>
+          <button
+            onClick={() => {
+              ui.saveRename();
+              setIsEditingName(false);
+            }}
+          >
+            Save
+          </button>
+          <button onClick={() => setIsEditingName(false)}>Close</button>
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <button onClick={() => collapseWhileEditing()}>
           {isCollapsed ? "▶" : "▼"}
-        </button>
-
-        <strong>{note.title || "Untitled Note"}</strong>
-
-        <button
-          onClick={() => ui.remove(note.id)}
-          style={{ marginLeft: "auto" }}
-        >
-          🗑️
         </button>
       </div>
 
       {!isCollapsed && (
-        <>
-          <div
-            style={{ fontSize: "0.8em", marginTop: "4px", color: "#6b7280" }}
-          >
-            {isSaving && "Saving…"}
-            {!isSaving && justSaved && "Saved"}
-          </div>
-          <textarea
-            ref={textareaRef}
-            value={draft}
-            onChange={handleChange}
-            style={{ width: "100%", marginTop: "6px" }}
-          />
-          {trigger && pickerPos && filteredAttachments.length > 0 && (
-            <div
-              style={{
-                position: "absolute",
-                top: pickerPos.top,
-                left: pickerPos.left,
-                background: "#fff",
-                border: "1px solid #ccc",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                zIndex: 1000,
-                maxHeight: "180px",
-                overflowY: "auto",
-                borderRadius: "6px",
-                minWidth: "220px",
-              }}
-            >
-              {filteredAttachments.map((att) => (
-                <div
-                  key={att.id}
-                  style={{
-                    padding: "6px 10px",
-                    cursor: "pointer",
-                  }}
-                  onMouseDown={(e) => {
-                    // prevent textarea blur
-                    e.preventDefault();
-                    insertAttachment(att.name);
-                  }}
-                >
-                  {att.name}
-                </div>
-              ))}
+        <div>
+          {isEditing && (
+            <div style={{ marginTop: "6px" }}>
+              <button onClick={() => setShowPicker((p) => !p)}>
+                📎 Insert Attachment
+              </button>
             </div>
           )}
-        </>
+          <button onClick={() => setIsEditing((p) => !p)}>
+            {isEditing ? "Save" : "Edit"}
+          </button>
+          {showPicker && (
+            <div
+              style={{
+                marginTop: "6px",
+                padding: "6px",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+                background: "#fafafa",
+              }}
+            >
+              {attachments.length === 0 && (
+                <p style={{ fontSize: "12px", color: "#777" }}>
+                  No attachments available
+                </p>
+              )}
+
+              {attachments.map((a) => (
+                <div key={a.id}>
+                  <button
+                    onClick={() => insertAttachment(a.name)}
+                    style={{ width: "100%", textAlign: "left" }}
+                  >
+                    {a.name}
+                  </button>
+                </div>
+              ))}
+
+              <button
+                onClick={() => setShowPicker(false)}
+                style={{ marginTop: "6px" }}
+              >
+                Close
+              </button>
+            </div>
+          )}
+          {isEditing ? (
+            <textarea
+              ref={textareaRef}
+              value={draft}
+              onChange={handleChange}
+              style={{ width: "100%", marginTop: "6px" }}
+            />
+          ) : (
+            <NotePreview
+              content={draft}
+              attachments={attachments}              
+            />
+          )}
+        </div>
       )}
     </div>
   );

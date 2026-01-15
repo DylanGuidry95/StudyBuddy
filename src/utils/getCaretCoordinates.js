@@ -38,8 +38,11 @@ export function getCaretCoordinates(textarea, position) {
   const rect = span.getBoundingClientRect();
   document.body.removeChild(div);
 
+  const textareaRect = textarea.getBoundingClientRect();
+  const spanRect = span.getBoundingClientRect();
+
   return {
-    top: rect.top + window.scrollY,
-    left: rect.left + window.scrollX,
+    top: spanRect.top - textareaRect.top + textarea.top,
+    left: spanRect.left - textareaRect.left + textarea.left,
   };
 }

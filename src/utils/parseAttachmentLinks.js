@@ -1,13 +1,11 @@
-export function parseAttachmentLinks(text, attachments) {
-  if (!text) return [];
-
+export function parseAttachmentLinks(text) {
   const regex = /\[\[([^\]]+)\]\]/g;
+
   const parts = [];
   let lastIndex = 0;
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    const name = match[1];
     const start = match.index;
     const end = regex.lastIndex;
 
@@ -18,12 +16,9 @@ export function parseAttachmentLinks(text, attachments) {
       });
     }
 
-    const attachment = attachments.find((a) => a.name === name);
-
     parts.push({
       type: "attachment",
-      value: name,
-      attachment,
+      value: match[1],
     });
 
     lastIndex = end;

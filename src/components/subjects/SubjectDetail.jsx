@@ -5,6 +5,8 @@ import { useGuidesDb } from "../../hooks/useGuidesDb";
 import { useNotesDb } from "../../hooks/useNoteDb";
 import { useAttachmentsDb } from "../../hooks/useAttachmentsDb";
 import CalendarPanel from "../calendar/CalendarPanel";
+import { AttachmentPreviewProvider } from "../attachments/AttachmentPreviewContext";
+import AttachmentPreviewHost from "../attachments/AttachmentPreviewHost";
 
 function SubjectDetail({ subject, onBack }) {
   const [activeGuideId, setActiveGuideId] = useState(null);
@@ -12,45 +14,48 @@ function SubjectDetail({ subject, onBack }) {
   const notesDb = useNotesDb(activeGuideId);
   const attachmentsDb = useAttachmentsDb(activeGuideId);
 
-  const activeGuide = guidesDb.guides.find(
-    (g) => g.id === activeGuideId
-  );
+  const activeGuide = guidesDb.guides.find((g) => g.id === activeGuideId);
 
   const updateGuideTitle = async (newTitle) => {
     await guidesDb.updateGuideTitle(activeGuideId, newTitle);
   };
 
   return (
-    <div className="subject-layout">
-      <SubjectSidebar
-        subject={subject}
-        guidesDb={guidesDb}
-        activeGuideId={activeGuideId}
-        setActiveGuideId={setActiveGuideId}
-        onBack={onBack}
-      />            
-      <div className="editor">        
-        {guidesDb.loading ? (
-          <p>Loading guides…</p>
-        ) : activeGuide ? (
-          <>
-          <button
-          onClick={() => setActiveGuideId(null)}> Close Guide 
-          </button>          
-          <GuideEditor 
-          guide={activeGuide}
-          notesDb={notesDb}
-          onUpdateTitle={updateGuideTitle}
-          attachmentsDb= {attachmentsDb} />
-          </>
-        ) : (
-          <>
-            <CalendarPanel subjectId={subject.id}> </CalendarPanel>
-            <p>Select or create a study guide</p>          
-          </>
-        )}        
+    <AttachmentPreviewProvider>
+      <div className="subject-layout">
+        <SubjectSidebar
+          subject={subject}
+          guidesDb={guidesDb}
+          activeGuideId={activeGuideId}
+          setActiveGuideId={setActiveGuideId}
+          onBack={onBack}
+        />
+        <div className="editor">
+          {guidesDb.loading ? (
+            <p>Loading guides…</p>
+          ) : activeGuide ? (
+            <>
+              <button onClick={() => setActiveGuideId(null)}>
+                {" "}
+                Close Guide
+              </button>
+              <GuideEditor
+                guide={activeGuide}
+                notesDb={notesDb}
+                onUpdateTitle={updateGuideTitle}
+                attachmentsDb={attachmentsDb}
+              />
+              <AttachmentPreviewHost attachmentsDb={attachmentsDb}/>
+            </>
+          ) : (
+            <>
+              <CalendarPanel subjectId={subject.id}> </CalendarPanel>
+              <p>Select or create a study guide</p>
+            </>
+          )}
+        </div>
       </div>      
-    </div>
+    </AttachmentPreviewProvider>
   );
 }
 

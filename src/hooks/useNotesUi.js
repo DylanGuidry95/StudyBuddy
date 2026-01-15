@@ -36,6 +36,10 @@ export function useNotesUi(notesDb) {
     notesDb.deleteNote(id);
   };
 
+  const openAttachmentPreview = () => {
+
+  }
+
   return {
     collapsed,
     toggleCollapse,
@@ -45,6 +49,7 @@ export function useNotesUi(notesDb) {
     startRename,
     saveRename,
     updateContent,
+    openAttachmentPreview,
     remove,
   };
 }
