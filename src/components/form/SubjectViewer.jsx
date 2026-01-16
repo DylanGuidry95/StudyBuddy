@@ -33,7 +33,7 @@ function SubjectViewer({ subjectsUi }) {
 
                 <button 
                 type="button"
-                onClick={() => { navigate(`/subjects/${subject.id}`);
+                onClick={() => { navigate(`subjects/${subject.id}`);
               console.log(subject.id)}}>
                   Open
                 </button>

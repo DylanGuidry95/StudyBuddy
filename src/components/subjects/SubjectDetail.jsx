@@ -19,7 +19,6 @@ function SubjectDetail() {
   const notesDb = useNotesDb(activeGuideId);
   const guidesDb = useGuidesDb(id);      
 
-
   const navigate = useNavigate();
   
 
