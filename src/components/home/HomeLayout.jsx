@@ -4,13 +4,14 @@ import { useAuthContext } from "../auth/AuthProvider";
 
 import SubjectCreator from "../form/SubjectCreator";
 import SubjectViewer from "../form/SubjectViewer";
+import { useEffect } from "react";
 
 export function HomeLayout() {  
 
   const subjectsDb = useSubjectsDb();
   const subjectsUi = useSubjects(subjectsDb);
   const { user } = useAuthContext();
-
+  
   if (!user) {
     return (
       <div>        

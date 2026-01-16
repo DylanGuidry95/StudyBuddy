@@ -10,7 +10,7 @@ function SubjectViewer({ subjectsUi }) {
     toggleGroup,
     deleteSubject,
   } = subjectsUi;
-  
+
   const navigate = useNavigate();
 
   const confirmDelete = (subject) => {
@@ -31,7 +31,9 @@ function SubjectViewer({ subjectsUi }) {
               <div key={subject.id} style={{ display: "flex", gap: "8px" }}>
                 <strong>{subject.name}</strong>
 
-                <button onClick={() => { navigate(`./subjects/${subject.id}`);
+                <button 
+                type="button"
+                onClick={() => { navigate(`/subjects/${subject.id}`);
               console.log(subject.id)}}>
                   Open
                 </button>

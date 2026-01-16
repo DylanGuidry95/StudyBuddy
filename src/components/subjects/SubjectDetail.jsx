@@ -1,26 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import SubjectSidebar from "./SubjectSidebar";
 import GuideEditor from "../guides/GuideEditor";
 import CalendarPanel from "../calendar/CalendarPanel";
 import AttachmentPreviewPanel from "../attachments/AttachmentPreviewPanel";
-import { AttachmentPreviewProvider } from "../attachments/AttachmentPreviewContext";
 
 import { useSubjectsDb } from "../../hooks/useSubjectsDb";
 import { useGuidesDb } from "../../hooks/useGuidesDb";
 import { useNotesDb } from "../../hooks/useNoteDb";
 import { useAttachmentsDb } from "../../hooks/useAttachmentsDb";
 
-function SubjectDetail() {
-  console.log("RENDER SubjectDetail");
-  const { subjectId } = useParams();  
+function SubjectDetail() {  
+  const { id } = useParams();  
   const subjectsDb = useSubjectsDb();
   const [activeGuideId, setActiveGuideId] = useState(null);
 
   const attachmentsDb = useAttachmentsDb(activeGuideId);
   const notesDb = useNotesDb(activeGuideId);
-  const guidesDb = useGuidesDb(subjectId);      
-  
+  const guidesDb = useGuidesDb(id);      
+
+
   const navigate = useNavigate();
   
 
@@ -29,11 +28,11 @@ function SubjectDetail() {
   }
 
   const subject = subjectsDb.subjects.find(
-    (s) => String(s.id) === String(subjectId)
+    (s) => String(s.id) === String(id)
   );
 
   if (!subject) {
-    return <p>{subjectId} not found</p>    
+    return <p>{id} not found</p>    
   }
 
   const activeGuide = guidesDb.guides.find(
@@ -75,7 +74,7 @@ function SubjectDetail() {
             </>
           ) : (
             <>
-              <CalendarPanel subjectId={subjectId} />
+              <CalendarPanel subjectId={id} />
               <p>Select or create a study guide</p>
             </>
           )}

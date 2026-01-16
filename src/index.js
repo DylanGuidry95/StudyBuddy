@@ -11,7 +11,7 @@ root.render(
   
     <React.StrictMode>
       <AuthProvider>
-        <BrowserRouter basename="StudyBudy">
+        <BrowserRouter basename="StudyBuddy">
           <App />
         </BrowserRouter>
       </AuthProvider>

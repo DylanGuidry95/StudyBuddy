@@ -12,11 +12,11 @@ function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<HomeLayout />} />
-        <Route
-          path="subjects/:subjectId"
-          element={user ? <SubjectDetail /> : <Navigate to="/" replace />}
-        />
+        <Route index element={<HomeLayout />} />
+        {user && <Route
+          path='subjects/:id'
+          element={<SubjectDetail />}
+        />}
       </Route>
     </Routes>
   );
