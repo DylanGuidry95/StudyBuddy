@@ -19,8 +19,7 @@ function SubjectSidebar({ subject, guidesDb, activeGuideId, setActiveGuideId, on
   }
 
   return (
-    <div className="sidebar">
-      <button onClick={onBack}>← Back</button>
+    <div className="sidebar">      
       <h2>{subject.name}</h2>
       
       <input

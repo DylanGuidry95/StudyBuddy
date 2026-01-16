@@ -1,0 +1,34 @@
+.attachment-preview-panel {
+  width: 0;
+  flex-shrink: 0;
+  transition: width 0.25s ease;
+  overflow: hidden;
+  border-left: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.attachment-preview-panel.open {
+  width: 360px;
+}
+
+.attachment-preview-panel .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.attachment-preview-panel .content {
+  padding: 10px;
+  height: calc(100% - 42px);
+  overflow: auto;
+}
+
+.attachment-preview-panel iframe,
+.attachment-preview-panel img {
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: contain;
+}

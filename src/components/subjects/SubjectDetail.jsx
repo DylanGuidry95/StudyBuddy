@@ -1,62 +1,89 @@
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import SubjectSidebar from "./SubjectSidebar";
 import GuideEditor from "../guides/GuideEditor";
+import CalendarPanel from "../calendar/CalendarPanel";
+import AttachmentPreviewPanel from "../attachments/AttachmentPreviewPanel";
+import { AttachmentPreviewProvider } from "../attachments/AttachmentPreviewContext";
+
+import { useSubjectsDb } from "../../hooks/useSubjectsDb";
 import { useGuidesDb } from "../../hooks/useGuidesDb";
 import { useNotesDb } from "../../hooks/useNoteDb";
 import { useAttachmentsDb } from "../../hooks/useAttachmentsDb";
-import CalendarPanel from "../calendar/CalendarPanel";
-import { AttachmentPreviewProvider } from "../attachments/AttachmentPreviewContext";
-import AttachmentPreviewHost from "../attachments/AttachmentPreviewHost";
 
-function SubjectDetail({ subject, onBack }) {
+function SubjectDetail() {
+  console.log("RENDER SubjectDetail");
+  const { subjectId } = useParams();  
+  const subjectsDb = useSubjectsDb();
   const [activeGuideId, setActiveGuideId] = useState(null);
-  const guidesDb = useGuidesDb(subject.id);
-  const notesDb = useNotesDb(activeGuideId);
-  const attachmentsDb = useAttachmentsDb(activeGuideId);
 
-  const activeGuide = guidesDb.guides.find((g) => g.id === activeGuideId);
+  const attachmentsDb = useAttachmentsDb(activeGuideId);
+  const notesDb = useNotesDb(activeGuideId);
+  const guidesDb = useGuidesDb(subjectId);      
+  
+  const navigate = useNavigate();
+  
+
+  if (subjectsDb.loading) {
+    return <p>Loading subject…</p>;
+  }
+
+  const subject = subjectsDb.subjects.find(
+    (s) => String(s.id) === String(subjectId)
+  );
+
+  if (!subject) {
+    return <p>{subjectId} not found</p>    
+  }
+
+  const activeGuide = guidesDb.guides.find(
+    (g) => String(g.id) === String(activeGuideId)
+  );
 
   const updateGuideTitle = async (newTitle) => {
     await guidesDb.updateGuideTitle(activeGuideId, newTitle);
   };
 
-  return (
-    <AttachmentPreviewProvider>
+  return (    
+    <>    
+      <button onClick={() => navigate("/")}>← Back</button>      
       <div className="subject-layout">
         <SubjectSidebar
           subject={subject}
           guidesDb={guidesDb}
           activeGuideId={activeGuideId}
           setActiveGuideId={setActiveGuideId}
-          onBack={onBack}
         />
+
         <div className="editor">
           {guidesDb.loading ? (
             <p>Loading guides…</p>
           ) : activeGuide ? (
             <>
               <button onClick={() => setActiveGuideId(null)}>
-                {" "}
                 Close Guide
               </button>
+
               <GuideEditor
                 guide={activeGuide}
                 notesDb={notesDb}
                 onUpdateTitle={updateGuideTitle}
                 attachmentsDb={attachmentsDb}
               />
-              <AttachmentPreviewHost attachmentsDb={attachmentsDb}/>
+
+              <AttachmentPreviewPanel attachmentsDb={attachmentsDb} />
             </>
           ) : (
             <>
-              <CalendarPanel subjectId={subject.id}> </CalendarPanel>
+              <CalendarPanel subjectId={subjectId} />
               <p>Select or create a study guide</p>
             </>
           )}
         </div>
-      </div>      
-    </AttachmentPreviewProvider>
+      </div>    
+      </>
   );
+    
 }
 
 export default SubjectDetail;
