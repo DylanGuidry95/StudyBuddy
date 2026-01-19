@@ -1,43 +1,25 @@
 import { useState } from "react";
 import { useAuth } from "./useAuth";
+import LoginForm from "./LoginForm";
+import SignUpForm from "./SignUpForm";
 
 export function AuthControls({}) {
   const auth = useAuth();
-  const { signIn, signUp } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const handleLogin = async () => {
-    const { error } = await signIn(email, password);
-    if (error) setError(error.message);
-  };
-
-  const handleSignup = async () => {
-    const { error } = await signUp(email, password);
-    if (error) setError(error.message);
-  };
+  const [onBoard, setOnboard] = useState(false)
 
   if (auth.loading) return <p>Loading...</p>;
 
   if (!auth.user) {
     return (
       <>
-        <input
-          type="email"
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <br />
-        <button onClick={handleSignup}>Sign Up</button>
-        <button onClick={handleLogin}>Sign In</button>
+        <LoginForm onLogin></LoginForm>
+        <br/>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        <button onClick={() => setOnboard(true)}>Create Account</button>
+        {onBoard &&
+        <SignUpForm onSignUp finishSignUp={()=> setOnboard(false)}></SignUpForm>
+        }
+        <br />
       </>
     );
   }

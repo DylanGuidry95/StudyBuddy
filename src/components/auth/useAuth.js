@@ -25,8 +25,15 @@ export function useAuth() {
     loading,
     signIn: (email, password) =>
       supabase.auth.signInWithPassword({ email, password }),
-    signUp: (email, password) =>
-      supabase.auth.signUp({ email, password }),
+    signUp: (firstName, lastName,email, password) =>
+      supabase.auth.signUp({ email, password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
+       }),
     signOut: () => supabase.auth.signOut(),
   };
 }
