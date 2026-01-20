@@ -4,6 +4,7 @@ import { useAuthContext } from "../auth/AuthProvider";
 
 import SubjectCreator from "../form/SubjectCreator";
 import SubjectViewer from "../form/SubjectViewer";
+import CalendarPanel from "../calendar/CalendarPanel";
 import { useEffect } from "react";
 
 export function HomeLayout() {  
@@ -33,7 +34,11 @@ export function HomeLayout() {
         <br />
         <SubjectViewer subjectsUi={subjectsUi} />
       </div>
+      <div className="calendar-panel">
+        <CalendarPanel subjectId={null} />
+      </div>
     </div>
+
   );
 }
 
