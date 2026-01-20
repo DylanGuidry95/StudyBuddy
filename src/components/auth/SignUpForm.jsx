@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./useAuth";
-import "./SignUpPopup.css";
+import "./AuthModals.css";
 
 function SignUpForm({ finishSignUp }) {
   const [email, setEmail] = useState("");

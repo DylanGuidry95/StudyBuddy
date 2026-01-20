@@ -1,7 +1,7 @@
 import { useState } from "react";
-import "./SignUpPopup.css";
+import "./AuthModals.css";
 
-function ProfileUpdateForm() {
+function ProfileUpdateForm({stopViewProfile}) {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [password, setPassword] = useState("");
@@ -9,6 +9,7 @@ function ProfileUpdateForm() {
     const [profileImage, setProfileImage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [edit, setEdit] = useState(false);
+    
 
     const handleInformationUpdate = async (e) => {
         e.prevemtDefault();
@@ -16,6 +17,7 @@ function ProfileUpdateForm() {
         //Make update call
         setLoading(false);
         //Display error messages
+        setEdit(false)
     }
 
     return (
@@ -23,8 +25,7 @@ function ProfileUpdateForm() {
             <div className="signup-modal">
                 <div className="signup-header">
                     <strong>Profile Details</strong>
-                </div>
-                <button onClick={setEdit}>Edit Information</button>
+                </div>                
                 <form onSubmit={handleInformationUpdate}>
                     <div className="signup-content">
                         <div className="form-field">
@@ -34,7 +35,7 @@ function ProfileUpdateForm() {
                                 placeholder="First Name"
                                 onChange={(e) => setFirstName(e.target.value)}
                                 required
-                                disabled={edit}
+                                disabled={!edit}
                             />
                         </div>
                         <div className="form-field">
@@ -44,7 +45,7 @@ function ProfileUpdateForm() {
                                 placeholder="Last Name"
                                 onChange={(e) => setLastName(e.target.value)}
                                 required
-                                disabled={edit}
+                                disabled={!edit}
                             />
                         </div>
                         {edit &&
@@ -72,8 +73,16 @@ function ProfileUpdateForm() {
                                         <p style={{ color: "red" }}> Passwords do not match</p>
                                     )}
                                 </div>
+                                <button type="submit">Save Changes</button>                                
+                                <br/>
+                                <button onClick={() => setEdit(false)}>Cancel</button>
+                                
                             </>
+                        } 
+                        {!edit &&
+                        <button onClick={() => setEdit(true)}>Edit Information</button>
                         }
+                        <button onClick={stopViewProfile}>Close</button>
                     </div>
                 </form>
             </div>

@@ -1,4 +1,4 @@
-.singup-overlay {
+.signup-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
@@ -11,7 +11,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
 
-  width: 700px;
+  width: 900px;
   height: 600px;
   max-width: 92vw;
   max-height: 90vh;

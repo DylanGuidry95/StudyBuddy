@@ -30,9 +30,9 @@ export function AuthControls({}) {
     <>
       <p>Logged in as {auth.user.email}</p>
       <button onClick={auth.signOut}>Log out</button>
-      <button onClick={setProfileView}>Edit Account</button>
+      <button onClick={() => setProfileView(true)}>Edit Account</button>
       {profileView &&
-        <ProfileUpdateForm/>
+        <ProfileUpdateForm stopViewProfile={ () => setProfileView(false)}/>
       }
     </>
   );
