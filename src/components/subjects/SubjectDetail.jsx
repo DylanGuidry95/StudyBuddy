@@ -62,7 +62,7 @@ function SubjectDetail() {
             <p>Loading guides…</p>
           ) : activeGuide ? (
             <>
-              <button onClick={() => setActiveGuideId(activeGuide.id)}>
+              <button onClick={() => setActiveGuideId(null)}>
                 Close Guide
               </button>
               <AttachmentPreviewProvider>                
