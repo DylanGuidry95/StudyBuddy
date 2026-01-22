@@ -25,7 +25,7 @@ export function useAccounts() {
     const path = `${user.id}/profile.jpg`;
 
     await supabase.storage
-      .from("avatars")
+      .from("Avatars")
       .upload(path, file, { upsert: true });
 
     await supabase
@@ -34,7 +34,7 @@ export function useAccounts() {
       .eq("id", user.id);
 
     const { data: signed } = await supabase.storage
-      .from("avatars")
+      .from("Avatars")
       .createSignedUrl(path, 60 * 60);
 
     // instant everywhere

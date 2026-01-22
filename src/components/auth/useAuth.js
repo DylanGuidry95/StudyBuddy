@@ -1,11 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [avatarSignedUrl, setAvatarSignedUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const authResolvedRef = useRef(false);
 
   // --------------------------------------
   // LOAD PROFILE + AVATAR
@@ -13,11 +14,22 @@ export function useAuth() {
   const loadProfile = useCallback(async (authUser) => {
     if (!authUser) return;
 
+    // 🔴 HARD GUARD: ensure client session is ready
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      console.warn("Session not ready, skipping profile load");
+      return;
+    }
+
+    console.log("Loading Profile");
+
     const { data, error } = await supabase
       .from("profiles")
       .select("first_name, last_name, avatar_url")
       .eq("id", authUser.id)
-      .maybeSingle(); // 🔴 IMPORTANT
+      .maybeSingle();
+
+    console.log("Fetched data");
 
     if (error) {
       console.error("Profile load failed:", error);
@@ -25,7 +37,6 @@ export function useAuth() {
     }
 
     if (!data) {
-      // profile row doesn't exist yet
       setProfile(null);
       setAvatarSignedUrl(null);
       return;
@@ -35,7 +46,7 @@ export function useAuth() {
 
     if (data.avatar_url) {
       const { data: signed } = await supabase.storage
-        .from("avatars")
+        .from("Avatars")
         .createSignedUrl(data.avatar_url, 60 * 60);
 
       setAvatarSignedUrl(signed?.signedUrl ?? null);
@@ -49,33 +60,25 @@ export function useAuth() {
   // --------------------------------------
   useEffect(() => {
     const initAuth = async () => {
-      try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-        if (error) {
-          console.error("getSession error:", error);
-        }
+      // 🔴 Prevent double-run in StrictMode
+      if (authResolvedRef.current) return;
 
-        const authUser = session?.user ?? null;
+      try {
+        const { data } = await supabase.auth.getSession();
+        const authUser = data?.session?.user ?? null;
+
         setUser(authUser);
 
-        // Only try to load profile if logged in
         if (authUser) {
-          await loadProfile(authUser);
-        } else {
-          setProfile(null);
-          setAvatarSignedUrl(null);
+          loadProfile(authUser); // fire-and-forget
         }
       } catch (err) {
         console.error("initAuth crashed:", err);
         setUser(null);
-        setProfile(null);
-        setAvatarSignedUrl(null);
       } finally {
-        // 🔴 THIS IS THE KEY LINE
-        setLoading(false);        
+        // 🔑 AUTH IS RESOLVED EXACTLY ONCE
+        authResolvedRef.current = true;
+        setAuthLoading(false);
       }
     };
 
@@ -87,11 +90,16 @@ export function useAuth() {
   // --------------------------------------
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         const authUser = session?.user ?? null;
         setUser(authUser);
-        await loadProfile(authUser);
-        setLoading(false);
+
+        if (authUser) {
+          loadProfile(authUser);
+        } else {
+          setProfile(null);
+          setAvatarSignedUrl(null);
+        }
       }
     );
 
@@ -105,7 +113,7 @@ export function useAuth() {
     user,
     profile,
     avatarSignedUrl,
-    loading,
+    authLoading,
 
     refreshProfile: () => loadProfile(user),
     setProfile,

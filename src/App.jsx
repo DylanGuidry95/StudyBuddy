@@ -6,12 +6,10 @@ import { useAuthContext } from "./components/auth/AuthProvider";
 
 
 function App() {
-  const auth  = useAuthContext();
-  if (!auth) return <p>AuthContext is null (provider not wired)</p>;
-  const {user, loading} = auth;
-  console.log("APP AUTH:", { loading, user });
+  const {user, authLoading}  = useAuthContext();  
+  console.log("APP AUTH:", { authLoading, user });
 
-  if (loading) return <p>Loading…</p>;
+  if (authLoading) return <p>Loading…</p>;
 
   return (    
       <Routes>
