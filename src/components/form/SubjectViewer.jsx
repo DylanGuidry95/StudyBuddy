@@ -21,6 +21,7 @@ function SubjectViewer({ subjectsUi }) {
 
   return (
     <>
+      <h1>Subjects</h1>
       {sortedGroups.map((group) => (
         <div key={group}>
           <button onClick={() => toggleGroup(group)}>

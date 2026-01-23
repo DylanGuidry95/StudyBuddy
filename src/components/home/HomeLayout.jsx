@@ -5,40 +5,60 @@ import { useAuthContext } from "../auth/AuthProvider";
 import SubjectCreator from "../form/SubjectCreator";
 import SubjectViewer from "../form/SubjectViewer";
 import CalendarPanel from "../calendar/CalendarPanel";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export function HomeLayout() {  
-
+export function HomeLayout() {
   const subjectsDb = useSubjectsDb();
   const subjectsUi = useSubjects(subjectsDb);
   const { user } = useAuthContext();
-  
-  useEffect(() => {console.log("HomeLoyout");}, []);
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
-  if (!user) {
-    return (
-      <div>        
-        <p>Please log in to view your subjects.</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    document.body.style.overflow = isNavOpen ? "hidden" : "";
+    return () => (document.body.style.overflow = "");
+  }, [isNavOpen]);
 
-  if (subjectsUi.loading && !user) {
-    return <p>Loading subjects…</p>;
-  }
+  if (!user) return <p>Please log in to view your subjects.</p>;
+  if (subjectsUi.loading) return <p>Loading subjects…</p>;
+
+  const SidebarContent = (
+    <>
+      <SubjectCreator addSubject={subjectsUi.addSubject} />
+      <br />
+      <SubjectViewer subjectsUi={subjectsUi} />
+    </>
+  );
 
   return (
     <div className="home-layout">
-      <div className="sidebar">
-        <SubjectCreator addSubject={subjectsUi.addSubject} />
-        <br />
-        <SubjectViewer subjectsUi={subjectsUi} />
-      </div>
-      <div className="calendar-panel">
-        <CalendarPanel subjectId={null} />
-      </div>
-    </div>
+      {/* MOBILE HEADER */}
+      <header className="mobile-header mobile-only">
+        <button onClick={() => setIsNavOpen(true)}>☰</button>        
+      </header>
 
+      {/* DESKTOP SIDEBAR */}
+      <aside className="sidebar desktop-only">
+        {SidebarContent}
+      </aside>
+
+      {/* MOBILE SIDEBAR */}
+      <aside className={`mobile-sidebar mobile-only ${isNavOpen ? "open" : ""}`}>
+        {SidebarContent}
+      </aside>
+
+      {/* BACKDROP (MOBILE ONLY) */}
+      {isNavOpen && (
+        <div
+          className="backdrop mobile-only"
+          onClick={() => setIsNavOpen(false)}
+        />
+      )}
+
+      {/* MAIN CONTENT */}
+      <main className="calendar-panel">
+        <CalendarPanel subjectId={null} />
+      </main>
+    </div>
   );
 }
 
